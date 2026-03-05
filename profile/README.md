@@ -18,6 +18,7 @@ We build packages that help teams and agents ship faster.
 | Package | What it does |
 |---------|-------------|
 | [@vllnt/eslint-config](https://github.com/vllnt/eslint-config) | Strict ESLint flat config for TypeScript — Next.js, React, Node.js, Convex presets |
+| [@vllnt/typescript](https://github.com/vllnt/typescript) | Shared TypeScript configurations — Next.js, React, Node.js, Node library presets |
 
 ## Philosophy
 
