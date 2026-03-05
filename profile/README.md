@@ -9,6 +9,7 @@ We build packages that help teams and agents ship faster.
 ---
 
 [![npm](https://img.shields.io/badge/npm-@vllnt-cb0000)](https://www.npmjs.com/org/vllnt)
+[![GitHub](https://img.shields.io/badge/built%20by-@bntvllnt-000)](https://github.com/bntvllnt)
 
 </div>
 
