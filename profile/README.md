@@ -43,7 +43,7 @@ We build packages that help teams and agents ship faster.
 
 <div align="center">
 
-[![Website](https://img.shields.io/badge/vllnt.com-000?style=flat)](https://vllnt.com)
+[![Website](https://img.shields.io/badge/vllnt.ai-000?style=flat)](https://vllnt.ai)
 [![X](https://img.shields.io/badge/@bntvllnt-000?style=flat&logo=x)](https://bntvllnt.com/x)
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=flat&logo=discord&logoColor=white)](https://bntvllnt.com/discord)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin)](https://bntvllnt.com/linkedin)
