@@ -2,9 +2,10 @@
 
 # vllnt
 
-**Open-source infrastructure for the age of AI.**
+**Freedom is the goal.**
 
-We build packages that help teams and agents ship faster.
+Open infrastructure that helps people and businesses stay sovereign in a world
+reshaped by AI — yours to run, inspect, and walk away from.
 
 ---
 
@@ -60,12 +61,21 @@ Sandboxed, `app.use()`-mountable components for any Convex backend — each owns
 |---------|-------------|
 | @vllnt/convex-analytics | Convex component — API-first analytics engine with events, sessions, funnels, retention, and MCP tools |
 
-## Philosophy
+## Why we build
 
-- **Open by default** — everything we build ships as open source
-- **Agent-ready** — designed for AI-assisted and AI-driven development
-- **Ship fast, stay strict** — opinionated defaults so you spend zero time configuring
+**Freedom is the goal.** Four principles serve it:
+
+- **Knowledge** — no black boxes. We explain what runs and why. See the territory, not just the map.
+- **Privacy** — what's yours stays yours. Local and self-hostable by default; no telemetry without consent.
+- **Sovereignty** — own your stack. Self-hostable over SaaS-only; you control your data, deploys, and keys.
+- **Legacy** — built to last. Maintainable, documented, deletable code — no throwaway hacks aimed at an exit.
+
+## How we build
+
+- **Open by default** — everything ships as open source
+- **Agent-ready** — built for AI-assisted and AI-driven development
 - **Composable** — use what you need, override what you don't
+- **Strict by default** — opinionated configs so correctness is the path of least resistance
 
 ---
 
