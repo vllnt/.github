@@ -1,0 +1,313 @@
+name: CNPG Artifact Authority
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  cnpg-artifact-authority:
+    name: cnpg-artifact-authority
+    if: ${{ github.repository == 'vllnt/infra' }}
+    runs-on: [self-hosted, ovh, ephemeral, cnpg-artifact-authority]
+    timeout-minutes: 20
+    env:
+      EXPECTED_REPOSITORY: vllnt/infra
+      EXPECTED_IMAGE: dnpz4use.c1.gra9.container-registry.ovh.net/vllnt/cnpg-barman-manager:v0.13.0-vllnt.3@sha256:99a39881fc636415c066e6e5438fe36252b5d5d969cfc2117814daeef7b64829
+      EXPECTED_BUILD_REVISION: 5fd5134d2ff02363e9287f1b2a96583863c6694c
+      EXPECTED_SOURCE_TREE_SHA256: ddb782aff4abebc723ab8f2003a4a20c87ea25bc8cbbed634704af6e28ce9266
+      EXPECTED_RUNTIME_CONFIG_SHA256: d36f2a4b7ef40f6be655ebbce0c052bc190459171c32cf7069afda9ed34a0753
+      EXPECTED_ROOTFS_SHA256: 9d3520f7401ef1d46dc896c7cbf1ac452d6f425db631ee57c3f9f2a65e393fcd
+      BUILD_DEPS_IMAGE: cnpg-barman-build-deps:v0.13.0-vllnt.3
+      EXPECTED_BUILD_DEPS_IMAGE_ID: sha256:d43748f7f7da1483d65d8f928a1f56fa8790c615c4b8357dfe0854d0714c21c1
+      BUILD_DEPS_BUILDER: default
+      COSIGN_VERSION: 3.0.6
+      COSIGN_SHA256: c956e5dfcac53d52bcf058360d579472f0c1d2d9b69f55209e256fe7783f4c74
+    steps:
+      - name: Checkout untrusted candidate without persisted credentials
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Verify signed artifact authority and reproducible image
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ $GITHUB_REPOSITORY == "$EXPECTED_REPOSITORY" ]]
+
+          readonly evidence_dir='infra/evidence/cnpg-barman-manager-v0.13.0-vllnt.3'
+          readonly proof="$evidence_dir/image-proof.json"
+          readonly bundle="$evidence_dir/image-proof.sigstore.json"
+          readonly source_dir='infra/apps/cnpg-barman-plugin'
+          readonly run_owner="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${GITHUB_SHA:0:12}"
+          readonly image_tag="cnpg-barman-manager:authority-${run_owner}"
+          readonly export_container_name="cnpg-barman-authority-export-${run_owner}"
+          readonly smoke_container_name="cnpg-barman-authority-smoke-${run_owner}"
+          work_dir=$(mktemp -d "$RUNNER_TEMP/cnpg-artifact-authority.XXXXXX")
+          readonly work_dir
+          readonly build_context="$work_dir/context"
+          readonly cosign="$work_dir/cosign"
+          readonly public_key="$work_dir/image-release.pub"
+          readonly tampered_proof="$work_dir/tampered-proof.json"
+          readonly rootfs_tar="$work_dir/rootfs.tar"
+          image_creation_attempted=0
+          export_container_creation_attempted=0
+          smoke_container_creation_attempted=0
+
+          remove_owned_container() {
+            local container_name=$1 owner=
+            docker container inspect "$container_name" >/dev/null 2>&1 || return 0
+            owner=$(docker container inspect --format \
+              '{{ index .Config.Labels "vllnt.ai/authority-run" }}' "$container_name") || return 1
+            if [[ $owner != "$run_owner" ]]; then
+              printf 'refusing to remove foreign authority container: %s\n' "$container_name" >&2
+              return 1
+            fi
+            docker container rm --force "$container_name" >/dev/null 2>&1
+          }
+
+          cleanup() {
+            local failed=0
+            ((smoke_container_creation_attempted == 0)) || \
+              remove_owned_container "$smoke_container_name" || failed=1
+            ((export_container_creation_attempted == 0)) || \
+              remove_owned_container "$export_container_name" || failed=1
+            if ((image_creation_attempted)) && docker image inspect "$image_tag" >/dev/null 2>&1; then
+              docker image rm "$image_tag" >/dev/null 2>&1 || failed=1
+            fi
+            [[ $work_dir == "$RUNNER_TEMP"/cnpg-artifact-authority.* ]] || return 1
+            rm -rf -- "$work_dir" || failed=1
+            return "$failed"
+          }
+
+          on_exit() {
+            local result=$?
+            trap - EXIT
+            cleanup || result=1
+            exit "$result"
+          }
+          trap on_exit EXIT
+          trap 'exit 130' INT TERM
+
+          for file in "$proof" "$bundle"; do
+            [[ -f $file ]]
+          done
+
+          jq -e \
+            --arg image "$EXPECTED_IMAGE" \
+            --arg buildRevision "$EXPECTED_BUILD_REVISION" \
+            --arg sourceTree "$EXPECTED_SOURCE_TREE_SHA256" \
+            --arg runtime "$EXPECTED_RUNTIME_CONFIG_SHA256" \
+            --arg rootfs "$EXPECTED_ROOTFS_SHA256" '
+              . == {
+                buildRevision: $buildRevision,
+                image: $image,
+                proofType: "vllnt.cnpg-barman-manager.image-equivalence.v3",
+                rootfsEntries: 16,
+                rootfsInventoryAlgorithm: "sha256(canonical-json(cnpg-image-rootfs-equivalence-v1))",
+                rootfsInventorySha256: $rootfs,
+                runtimeConfigAlgorithm: "sha256(canonical-json({Architecture,Os,Config}))",
+                runtimeConfigSha256: $runtime,
+                schemaVersion: 3,
+                sourceTreeAlgorithm: "sha256(nul-stream(path-sorted(mode,path,sha256(file-bytes))))",
+                sourceTreeSha256: $sourceTree
+              }
+            ' "$proof" >/dev/null
+
+          cat >"$public_key" <<'PUBLIC_KEY'
+          -----BEGIN PUBLIC KEY-----
+          MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEN1sP5aQusxVGoz3iYzFqcm4ISiBK
+          fJ5QgUA2B/G+k73r7gtpHarbFgLwB773fHFI1jX95ud+Ok4PCMiHWbtYhg==
+          -----END PUBLIC KEY-----
+          PUBLIC_KEY
+          curl -fsSL --retry 3 --retry-all-errors --retry-delay 2 \
+            --connect-timeout 10 --max-time 180 \
+            "https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign-linux-amd64" \
+            -o "$cosign"
+          printf '%s  %s\n' "$COSIGN_SHA256" "$cosign" | sha256sum -c -
+          chmod 0755 "$cosign"
+          "$cosign" version 2>/dev/null | grep -Fq "GitVersion:    v${COSIGN_VERSION}"
+          "$cosign" verify-blob --private-infrastructure \
+            --key "$public_key" --bundle "$bundle" "$proof" >/dev/null
+          jq '.rootfsEntries += 1' "$proof" >"$tampered_proof"
+          if "$cosign" verify-blob --private-infrastructure \
+            --key "$public_key" --bundle "$bundle" "$tampered_proof" >/dev/null 2>&1; then
+            printf 'tampered proof passed release-key verification\n' >&2
+            exit 1
+          fi
+
+          readonly build_deps_image_ref="${BUILD_DEPS_IMAGE}@${EXPECTED_BUILD_DEPS_IMAGE_ID}"
+          build_deps_image_id=$(docker image inspect --format '{{.Id}}' "$build_deps_image_ref")
+          [[ $build_deps_image_id == "$EXPECTED_BUILD_DEPS_IMAGE_ID" ]]
+          builder_json=$(docker buildx ls --format '{{json .}}' | jq -sc \
+            --arg name "$BUILD_DEPS_BUILDER" \
+            '[.[] | select(.Name == $name)] | unique |
+              if length == 1 then .[0] else error("builder identity") end')
+          jq -e '
+            .Driver == "docker" and
+            .Dynamic == false and
+            (.Nodes | length) == 1 and
+            .Nodes[0].Endpoint == "default" and
+            .Nodes[0].Status == "running"
+          ' <<<"$builder_json" >/dev/null
+
+          source_tree_sha=$(python3 - "$source_dir" "$build_context" <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+
+          source_dir = sys.argv[1]
+          context_dir = Path(sys.argv[2])
+          context_dir.mkdir(parents=True, exist_ok=False)
+          output = subprocess.check_output(
+              ["git", "ls-files", "-s", "-z", "--", source_dir]
+          )
+          records = []
+          for raw_record in output.split(b"\0"):
+              if not raw_record:
+                  continue
+              metadata, raw_path = raw_record.split(b"\t", 1)
+              mode, object_id, stage = metadata.split(b" ")
+              if mode not in {b"100644", b"100755"} or stage != b"0":
+                  raise SystemExit("unsupported source-tree entry")
+              path = os.fsdecode(raw_path)
+              content = subprocess.check_output(
+                  ["git", "cat-file", "blob", object_id.decode("ascii")]
+              )
+              relative = Path(path).relative_to(source_dir)
+              if relative.is_absolute() or ".." in relative.parts:
+                  raise SystemExit("unsafe source-tree path")
+              destination = context_dir / relative
+              destination.parent.mkdir(parents=True, exist_ok=True)
+              destination.write_bytes(content)
+              destination.chmod(0o755 if mode == b"100755" else 0o644)
+              records.append((raw_path, mode, hashlib.sha256(content).hexdigest()))
+          if not records:
+              raise SystemExit("source tree is empty")
+          digest = hashlib.sha256()
+          for raw_path, mode, file_sha in sorted(records, key=lambda item: item[0]):
+              digest.update(mode + b"\0" + raw_path + b"\0" + file_sha.encode() + b"\0")
+          print(digest.hexdigest())
+          PY
+          )
+          [[ $source_tree_sha == "$EXPECTED_SOURCE_TREE_SHA256" ]]
+
+          if docker image inspect "$image_tag" >/dev/null 2>&1; then
+            printf 'authority image tag is already present: %s\n' "$image_tag" >&2
+            exit 1
+          fi
+          image_creation_attempted=1
+          build_deps_image_id=$(docker image inspect --format '{{.Id}}' "$build_deps_image_ref")
+          [[ $build_deps_image_id == "$EXPECTED_BUILD_DEPS_IMAGE_ID" ]]
+          timeout --signal=TERM --kill-after=15s 10m \
+            docker buildx build --builder "$BUILD_DEPS_BUILDER" \
+              --load --network=none --no-cache --pull=false \
+              --provenance=false --sbom=false \
+              --build-arg "CNPG_BUILD_DEPS_IMAGE=$build_deps_image_ref" \
+              --build-arg "VLLNT_SOURCE_REVISION=$EXPECTED_BUILD_REVISION" \
+              --tag "$image_tag" "$build_context"
+          image_json=$(docker image inspect "$image_tag")
+          runtime_config=$(jq -cS '.[0] | {Architecture,Os,Config}' <<<"$image_json")
+          runtime_config_sha=$(printf '%s' "$runtime_config" | sha256sum | awk '{print $1}')
+          [[ $runtime_config_sha == "$EXPECTED_RUNTIME_CONFIG_SHA256" ]]
+
+          if docker container inspect "$export_container_name" >/dev/null 2>&1; then
+            printf 'authority container name is already present: %s\n' "$export_container_name" >&2
+            exit 1
+          fi
+          export_container_creation_attempted=1
+          docker container create --name "$export_container_name" --pull=never \
+            --label "vllnt.ai/authority-run=$run_owner" "$image_tag" >/dev/null
+          docker export --output "$rootfs_tar" "$export_container_name"
+          inventory_json=$(python3 - "$rootfs_tar" <<'PY'
+          import hashlib
+          import json
+          from pathlib import PurePosixPath
+          import sys
+          import tarfile
+
+          ignored_pax_headers = {"atime", "ctime", "mtime", "LIBARCHIVE.creationtime"}
+
+          def member_type(member):
+              for predicate, name in (
+                  (member.isfile, "file"),
+                  (member.isdir, "directory"),
+                  (member.issym, "symlink"),
+                  (member.islnk, "hardlink"),
+                  (member.ischr, "character-device"),
+                  (member.isblk, "block-device"),
+                  (member.isfifo, "fifo"),
+              ):
+                  if predicate():
+                      return name
+              return f"unknown-{member.type.hex()}"
+
+          records = []
+          seen = set()
+          with tarfile.open(sys.argv[1], mode="r:") as archive:
+              for member in archive.getmembers():
+                  member_path = PurePosixPath(member.name)
+                  if member_path.is_absolute() or ".." in member_path.parts:
+                      raise SystemExit("unsafe rootfs member path")
+                  if member.name in seen:
+                      raise SystemExit("duplicate rootfs member path")
+                  seen.add(member.name)
+                  record = {
+                      "name": member.name,
+                      "type": member_type(member),
+                      "mode": member.mode,
+                      "uid": member.uid,
+                      "gid": member.gid,
+                      "size": member.size,
+                      "linkname": member.linkname,
+                      "devmajor": member.devmajor,
+                      "devminor": member.devminor,
+                      "pax_headers": sorted(
+                          (key, value)
+                          for key, value in member.pax_headers.items()
+                          if key not in ignored_pax_headers
+                      ),
+                  }
+                  if member.isfile():
+                      source = archive.extractfile(member)
+                      if source is None:
+                          raise SystemExit("unreadable rootfs file")
+                      file_digest = hashlib.sha256()
+                      with source:
+                          for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                              file_digest.update(chunk)
+                      record["sha256"] = file_digest.hexdigest()
+                  records.append(record)
+          records.sort(key=lambda record: record["name"])
+          canonical = json.dumps(records, sort_keys=True, separators=(",", ":")).encode()
+          print(json.dumps({"entries": len(records), "sha256": hashlib.sha256(canonical).hexdigest()}))
+          PY
+          )
+          jq -e \
+            --arg sha "$EXPECTED_ROOTFS_SHA256" \
+            '.entries == 16 and .sha256 == $sha' <<<"$inventory_json" >/dev/null
+          remove_owned_container "$export_container_name"
+          export_container_creation_attempted=0
+
+          if docker container inspect "$smoke_container_name" >/dev/null 2>&1; then
+            printf 'authority smoke container name is already present: %s\n' "$smoke_container_name" >&2
+            exit 1
+          fi
+          smoke_container_creation_attempted=1
+          timeout --signal=TERM --kill-after=5s 30s \
+            docker run --rm --name "$smoke_container_name" --pull=never \
+              --network=none --read-only --cap-drop=ALL \
+              --security-opt=no-new-privileges \
+              --label "vllnt.ai/authority-run=$run_owner" \
+              "$image_tag" operator --help >/dev/null
+          smoke_container_creation_attempted=0
+
+          cleanup
+          trap - EXIT
+          printf 'CNPG artifact authority: PASS\n'
