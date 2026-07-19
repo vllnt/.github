@@ -57,6 +57,21 @@ jobs:
           image_creation_attempted=0
           export_container_creation_attempted=0
           smoke_container_creation_attempted=0
+          runtime_config_neutral_defaults=
+
+          canonical_runtime_config() {
+            jq -cS --argjson neutral_defaults "$runtime_config_neutral_defaults" '
+              def canonical_config:
+                reduce ($neutral_defaults | to_entries[]) as $neutral (.;
+                  if has($neutral.key) and .[$neutral.key] == $neutral.value then
+                    del(.[$neutral.key])
+                  else
+                    .
+                  end
+                );
+              .[0] | {Architecture,Os,Config:(.Config | canonical_config)}
+            '
+          }
 
           remove_owned_container() {
             local container_name=$1 owner=
@@ -106,13 +121,36 @@ jobs:
               . == {
                 buildRevision: $buildRevision,
                 image: $image,
-                proofType: "vllnt.cnpg-barman-manager.image-equivalence.v3",
+                proofType: "vllnt.cnpg-barman-manager.image-equivalence.v4",
                 rootfsEntries: 16,
                 rootfsInventoryAlgorithm: "sha256(canonical-json(cnpg-image-rootfs-equivalence-v1))",
                 rootfsInventorySha256: $rootfs,
-                runtimeConfigAlgorithm: "sha256(canonical-json({Architecture,Os,Config}))",
+                runtimeConfigAlgorithm: "sha256(canonical-json(cnpg-runtime-config-v2))",
+                runtimeConfigNeutralDefaults: {
+                  ArgsEscaped:false,
+                  AttachStderr:false,
+                  AttachStdin:false,
+                  AttachStdout:false,
+                  Cmd:null,
+                  Domainname:"",
+                  ExposedPorts:null,
+                  Healthcheck:null,
+                  Hostname:"",
+                  Image:"",
+                  MacAddress:"",
+                  NetworkDisabled:false,
+                  OnBuild:null,
+                  OpenStdin:false,
+                  Shell:null,
+                  StdinOnce:false,
+                  StopSignal:"",
+                  StopTimeout:null,
+                  Tty:false,
+                  Volumes:null
+                },
+                runtimeConfigProjection: ["Architecture","Os","Config"],
                 runtimeConfigSha256: $runtime,
-                schemaVersion: 3,
+                schemaVersion: 4,
                 sourceTreeAlgorithm: "sha256(nul-stream(path-sorted(mode,path,sha256(file-bytes))))",
                 sourceTreeSha256: $sourceTree
               }
@@ -139,6 +177,61 @@ jobs:
             printf 'tampered proof passed release-key verification\n' >&2
             exit 1
           fi
+
+          runtime_config_neutral_defaults=$(jq -cS '.runtimeConfigNeutralDefaults' "$proof")
+          readonly runtime_config_neutral_defaults
+          minimal_runtime_fixture='[{"Architecture":"amd64","Os":"linux","Config":{"Entrypoint":["/manager"]}}]'
+          minimal_runtime_fixture=$(canonical_runtime_config <<<"$minimal_runtime_fixture")
+          runtime_fixture_count=0
+          runtime_fixture_fields='[]'
+          while read -r runtime_field neutral_value non_neutral_value wrong_type_value; do
+            neutral_runtime_fixture=$(jq -cn --arg field "$runtime_field" \
+              --argjson value "$neutral_value" \
+              '[{Architecture:"amd64",Os:"linux",Config:({Entrypoint:["/manager"]}+{($field):$value})}]')
+            non_neutral_runtime_fixture=$(jq -cn --arg field "$runtime_field" \
+              --argjson value "$non_neutral_value" \
+              '[{Architecture:"amd64",Os:"linux",Config:({Entrypoint:["/manager"]}+{($field):$value})}]')
+            wrong_type_runtime_fixture=$(jq -cn --arg field "$runtime_field" \
+              --argjson value "$wrong_type_value" \
+              '[{Architecture:"amd64",Os:"linux",Config:({Entrypoint:["/manager"]}+{($field):$value})}]')
+            expected_non_neutral_runtime_fixture=$(jq -cS '.[0] | {Architecture,Os,Config}' \
+              <<<"$non_neutral_runtime_fixture")
+            expected_wrong_type_runtime_fixture=$(jq -cS '.[0] | {Architecture,Os,Config}' \
+              <<<"$wrong_type_runtime_fixture")
+            [[ $(canonical_runtime_config <<<"$neutral_runtime_fixture") == "$minimal_runtime_fixture" ]]
+            [[ $(canonical_runtime_config <<<"$non_neutral_runtime_fixture") == \
+              "$expected_non_neutral_runtime_fixture" ]]
+            [[ $(canonical_runtime_config <<<"$wrong_type_runtime_fixture") == \
+              "$expected_wrong_type_runtime_fixture" ]]
+            runtime_fixture_fields=$(jq -c --arg field "$runtime_field" '. + [$field]' \
+              <<<"$runtime_fixture_fields")
+            ((runtime_fixture_count += 1))
+          done <<'RUNTIME_CONFIG_FIXTURES'
+          Hostname "" "host" false
+          Domainname "" "example.internal" false
+          AttachStdin false true "false"
+          AttachStdout false true "false"
+          AttachStderr false true "false"
+          ExposedPorts null {"8080/tcp":{}} "null"
+          Tty false true "false"
+          OpenStdin false true "false"
+          StdinOnce false true "false"
+          Cmd null ["serve"] "null"
+          Healthcheck null {"Test":["CMD","true"]} "null"
+          ArgsEscaped false true "false"
+          Image "" "sha256:abc" false
+          Volumes null {"/data":{}} "null"
+          NetworkDisabled false true "false"
+          MacAddress "" "02:42:ac:11:00:02" false
+          OnBuild null ["RUN:true"] "null"
+          StopSignal "" "SIGTERM" false
+          StopTimeout null 10 "null"
+          Shell null ["/bin/sh","-c"] "null"
+          RUNTIME_CONFIG_FIXTURES
+          [[ $runtime_fixture_count -eq $(jq 'length' <<<"$runtime_config_neutral_defaults") ]]
+          runtime_fixture_keys=$(jq -c 'sort | unique' <<<"$runtime_fixture_fields")
+          signed_runtime_fixture_keys=$(jq -c 'keys' <<<"$runtime_config_neutral_defaults")
+          [[ $runtime_fixture_keys == "$signed_runtime_fixture_keys" ]]
 
           readonly build_deps_image_ref="${BUILD_DEPS_IMAGE}@${EXPECTED_BUILD_DEPS_IMAGE_ID}"
           build_deps_image_id=$(docker image inspect --format '{{.Id}}' "$build_deps_image_ref")
@@ -213,7 +306,7 @@ jobs:
               --build-arg "VLLNT_SOURCE_REVISION=$EXPECTED_BUILD_REVISION" \
               --tag "$image_tag" "$build_context"
           image_json=$(docker image inspect "$image_tag")
-          runtime_config=$(jq -cS '.[0] | {Architecture,Os,Config}' <<<"$image_json")
+          runtime_config=$(canonical_runtime_config <<<"$image_json")
           runtime_config_sha=$(printf '%s' "$runtime_config" | sha256sum | awk '{print $1}')
           [[ $runtime_config_sha == "$EXPECTED_RUNTIME_CONFIG_SHA256" ]]
 
