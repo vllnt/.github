@@ -1,0 +1,75 @@
+name: Leak Gate (reusable)
+# Fails a pull request when its commits add a secret (gitleaks) or a private
+# reference: tailnet hostnames, local home paths, tailscale mentions, or any
+# extra pattern from the caller's LEAK_GATE_EXTRA_PATTERNS secret (one
+# extended regex per line; keep internal hostnames there, never in this file).
+# Only lines ADDED by the PR are checked by the denylist, so existing docs do
+# not block unrelated work. A repo can allow known-safe lines with regexes in
+# .leakgate-allow (one per line).
+
+on:
+  workflow_call:
+    secrets:
+      LEAK_GATE_EXTRA_PATTERNS:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  leak-gate:
+    name: Leak gate
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+      DENY_RE: '\.ts\.net\b|/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+/|tailscale'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Resolve commit range
+        id: range
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "base=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+            echo "head=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            before='${{ github.event.before }}'
+            if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ] || ! git rev-parse -q --verify "$before^{commit}" >/dev/null; then
+              before="$(git rev-parse '${{ github.sha }}~1' 2>/dev/null || git hash-object -t tree /dev/null)"
+            fi
+            echo "base=$before" >> "$GITHUB_OUTPUT"
+            echo "head=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: gitleaks (commits in range)
+        run: |
+          set -euo pipefail
+          curl -sSfL -o gl.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gl.tgz" | sha256sum -c -
+          tar -xzf gl.tgz gitleaks && rm gl.tgz
+          ./gitleaks git --redact --no-banner --log-opts="${{ steps.range.outputs.base }}..${{ steps.range.outputs.head }}" .
+
+      - name: Private-reference denylist (added lines)
+        env:
+          EXTRA: ${{ secrets.LEAK_GATE_EXTRA_PATTERNS }}
+        run: |
+          set -euo pipefail
+          re="$DENY_RE"
+          while IFS= read -r p; do [ -n "$p" ] && re="$re|$p"; done <<< "${EXTRA:-}"
+          added=$(git diff --unified=0 --no-color "${{ steps.range.outputs.base }}" "${{ steps.range.outputs.head }}" -- . ':(exclude).github/workflows/leak-gate*.yml' \
+            | awk '/^\+\+\+ /{f=substr($0,7);next} /^\+/{print f": "substr($0,2)}')
+          hits=$(printf '%s\n' "$added" | grep -inE "$re" || true)
+          if [ -f .leakgate-allow ] && [ -n "$hits" ]; then
+            hits=$(printf '%s\n' "$hits" | grep -vE -f <(grep -v '^\s*#' .leakgate-allow | grep -v '^\s*$') || true)
+          fi
+          if [ -n "$hits" ]; then
+            # Print only file names, never the matched text.
+            printf '%s\n' "$hits" | cut -d: -f2 | sort -u | while read -r f; do echo "::error file=$f::Private reference added (hostname, home path or denylisted term)"; done
+            exit 1
+          fi
+          echo "OK: no private references in added lines."
