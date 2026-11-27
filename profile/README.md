@@ -9,6 +9,7 @@ reshaped by AI — yours to run, inspect, and walk away from.
 
 ---
 
+[![Packages](https://img.shields.io/badge/packages-oss.vllnt.com-000)](https://oss.vllnt.com)
 [![npm](https://img.shields.io/badge/npm-@vllnt-cb0000)](https://www.npmjs.com/org/vllnt)
 [![GitHub](https://img.shields.io/badge/built%20by-@bntvllnt-000)](https://github.com/bntvllnt)
 
@@ -16,13 +17,15 @@ reshaped by AI — yours to run, inspect, and walk away from.
 
 ## Packages
 
+Package pages with docs and changelogs: [oss.vllnt.com/packages](https://oss.vllnt.com/packages).
+
 | Package | npm | What it does |
 |---------|-----|-------------|
-| [@vllnt/eslint-config](https://github.com/vllnt/eslint-config) | [![npm](https://img.shields.io/npm/v/@vllnt/eslint-config)](https://www.npmjs.com/package/@vllnt/eslint-config) | Strict ESLint flat config for TypeScript — every rule enforces error. Next.js, React, Node.js, Convex presets |
-| [@vllnt/typescript](https://github.com/vllnt/typescript) | [![npm](https://img.shields.io/npm/v/@vllnt/typescript)](https://www.npmjs.com/package/@vllnt/typescript) | Shared TypeScript configurations — Next.js, React, Node.js, Node library presets |
-| [@vllnt/analytics](https://github.com/vllnt/analytics) | [![npm](https://img.shields.io/npm/v/@vllnt/analytics)](https://www.npmjs.com/package/@vllnt/analytics) | Lightweight privacy-first analytics with consent management, DNT detection, and React hooks |
-| [@vllnt/logger](https://github.com/vllnt/logger) | [![npm](https://img.shields.io/npm/v/@vllnt/logger)](https://www.npmjs.com/package/@vllnt/logger) | Structured JSON logging — zero deps, tree-shakeable, multi-runtime (Node, Convex, browser, edge) |
-| [@vllnt/ui](https://github.com/vllnt/ui) | [![npm](https://img.shields.io/npm/v/@vllnt/ui)](https://www.npmjs.com/package/@vllnt/ui) | Modular UI component library — React, TypeScript, Tailwind |
+| [@vllnt/eslint-config](https://oss.vllnt.com/packages/eslint-config) | [![npm](https://img.shields.io/npm/v/@vllnt/eslint-config)](https://www.npmjs.com/package/@vllnt/eslint-config) | Strict ESLint flat config for TypeScript — every rule enforces error. Next.js, React, Node.js, Convex presets |
+| [@vllnt/typescript](https://oss.vllnt.com/packages/typescript) | [![npm](https://img.shields.io/npm/v/@vllnt/typescript)](https://www.npmjs.com/package/@vllnt/typescript) | Shared TypeScript configurations — Next.js, React, Node.js, Node library presets |
+| [@vllnt/analytics](https://oss.vllnt.com/packages/analytics) | [![npm](https://img.shields.io/npm/v/@vllnt/analytics)](https://www.npmjs.com/package/@vllnt/analytics) | Lightweight privacy-first analytics with consent management, DNT detection, and React hooks |
+| [@vllnt/logger](https://oss.vllnt.com/packages/logger) | [![npm](https://img.shields.io/npm/v/@vllnt/logger)](https://www.npmjs.com/package/@vllnt/logger) | Structured JSON logging — zero deps, tree-shakeable, multi-runtime (Node, Convex, browser, edge) |
+| [@vllnt/ui](https://oss.vllnt.com/packages/ui) | [![npm](https://img.shields.io/npm/v/@vllnt/ui)](https://www.npmjs.com/package/@vllnt/ui) | Modular UI component library — React, TypeScript, Tailwind |
 
 ## Convex Components
 
@@ -30,28 +33,28 @@ Sandboxed, `app.use()`-mountable components for any Convex backend — each owns
 
 | Package | npm | What it does |
 |---------|-----|-------------|
-| [@vllnt/convex-api-keys](https://github.com/vllnt/convex-api-keys) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-api-keys)](https://www.npmjs.com/package/@vllnt/convex-api-keys) | Secure API key management — create, validate, revoke, rotate, rate-limit, track usage |
-| [@vllnt/convex-comments](https://github.com/vllnt/convex-comments) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-comments)](https://www.npmjs.com/package/@vllnt/convex-comments) | Threaded comments / annotations on any resource — post, reply, edit, resolve, soft-delete |
-| [@vllnt/convex-consent](https://github.com/vllnt/convex-consent) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-consent)](https://www.npmjs.com/package/@vllnt/convex-consent) | Append-only consent ledger (GDPR Art. 6/7) — record, withdraw, and gate consent per subject + purpose |
-| [@vllnt/convex-email](https://github.com/vllnt/convex-email) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-email)](https://www.npmjs.com/package/@vllnt/convex-email) | Durable, transport-agnostic transactional email queue — enqueue, retry, idempotent send, delivery status |
-| [@vllnt/convex-events](https://github.com/vllnt/convex-events) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-events)](https://www.npmjs.com/package/@vllnt/convex-events) | Append-only per-subject activity feed and event ledger |
-| [@vllnt/convex-flags](https://github.com/vllnt/convex-flags) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-flags)](https://www.npmjs.com/package/@vllnt/convex-flags) | Feature flags — boolean & multivariate, % rollout, attribute targeting, evaluated server-side and streamed live |
-| [@vllnt/convex-idempotency](https://github.com/vllnt/convex-idempotency) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-idempotency)](https://www.npmjs.com/package/@vllnt/convex-idempotency) | Exactly-once idempotency key ledger for retried operations |
-| [@vllnt/convex-invitations](https://github.com/vllnt/convex-invitations) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-invitations)](https://www.npmjs.com/package/@vllnt/convex-invitations) | Invite → accept → expire — single-use, expiring invitations to a resource |
-| [@vllnt/convex-memberships](https://github.com/vllnt/convex-memberships) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-memberships)](https://www.npmjs.com/package/@vllnt/convex-memberships) | Auth-agnostic membership and relationship graph (ReBAC tuples) |
-| [@vllnt/convex-notifications](https://github.com/vllnt/convex-notifications) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-notifications)](https://www.npmjs.com/package/@vllnt/convex-notifications) | Per-subject directed inbox — read/unread state and fan-out |
-| [@vllnt/convex-permissions](https://github.com/vllnt/convex-permissions) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-permissions)](https://www.npmjs.com/package/@vllnt/convex-permissions) | Typed authorization — roles and policies, type-safe guards (require/check/can) |
-| [@vllnt/convex-reactions](https://github.com/vllnt/convex-reactions) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-reactions)](https://www.npmjs.com/package/@vllnt/convex-reactions) | Reactions, votes, and likes on any resource — toggle, count by kind, list reactors |
-| [@vllnt/convex-slugs](https://github.com/vllnt/convex-slugs) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-slugs)](https://www.npmjs.com/package/@vllnt/convex-slugs) | Unique slug and handle registry with rename redirects |
-| [@vllnt/convex-suppression](https://github.com/vllnt/convex-suppression) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-suppression)](https://www.npmjs.com/package/@vllnt/convex-suppression) | Do-not-contact suppression list + opt-in proof (GDPR/CAN-SPAM), hash-keyed and channel-aware |
-| [@vllnt/convex-tokens](https://github.com/vllnt/convex-tokens) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-tokens)](https://www.npmjs.com/package/@vllnt/convex-tokens) | Hashed-secret token primitive — mint-once, TTL, revoke, scope |
-| [@vllnt/convex-wallet](https://github.com/vllnt/convex-wallet) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-wallet)](https://www.npmjs.com/package/@vllnt/convex-wallet) | Consumable balances and economy ledger — atomic spend, lazy regen |
+| [@vllnt/convex-api-keys](https://oss.vllnt.com/packages/convex-api-keys) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-api-keys)](https://www.npmjs.com/package/@vllnt/convex-api-keys) | Secure API key management — create, validate, revoke, rotate, rate-limit, track usage |
+| [@vllnt/convex-comments](https://oss.vllnt.com/packages/convex-comments) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-comments)](https://www.npmjs.com/package/@vllnt/convex-comments) | Threaded comments / annotations on any resource — post, reply, edit, resolve, soft-delete |
+| [@vllnt/convex-consent](https://oss.vllnt.com/packages/convex-consent) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-consent)](https://www.npmjs.com/package/@vllnt/convex-consent) | Append-only consent ledger (GDPR Art. 6/7) — record, withdraw, and gate consent per subject + purpose |
+| [@vllnt/convex-email](https://oss.vllnt.com/packages/convex-email) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-email)](https://www.npmjs.com/package/@vllnt/convex-email) | Durable, transport-agnostic transactional email queue — enqueue, retry, idempotent send, delivery status |
+| [@vllnt/convex-events](https://oss.vllnt.com/packages/convex-events) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-events)](https://www.npmjs.com/package/@vllnt/convex-events) | Append-only per-subject activity feed and event ledger |
+| [@vllnt/convex-flags](https://oss.vllnt.com/packages/convex-flags) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-flags)](https://www.npmjs.com/package/@vllnt/convex-flags) | Feature flags — boolean & multivariate, % rollout, attribute targeting, evaluated server-side and streamed live |
+| [@vllnt/convex-idempotency](https://oss.vllnt.com/packages/convex-idempotency) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-idempotency)](https://www.npmjs.com/package/@vllnt/convex-idempotency) | Exactly-once idempotency key ledger for retried operations |
+| [@vllnt/convex-invitations](https://oss.vllnt.com/packages/convex-invitations) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-invitations)](https://www.npmjs.com/package/@vllnt/convex-invitations) | Invite → accept → expire — single-use, expiring invitations to a resource |
+| [@vllnt/convex-memberships](https://oss.vllnt.com/packages/convex-memberships) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-memberships)](https://www.npmjs.com/package/@vllnt/convex-memberships) | Auth-agnostic membership and relationship graph (ReBAC tuples) |
+| [@vllnt/convex-notifications](https://oss.vllnt.com/packages/convex-notifications) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-notifications)](https://www.npmjs.com/package/@vllnt/convex-notifications) | Per-subject directed inbox — read/unread state and fan-out |
+| [@vllnt/convex-permissions](https://oss.vllnt.com/packages/convex-permissions) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-permissions)](https://www.npmjs.com/package/@vllnt/convex-permissions) | Typed authorization — roles and policies, type-safe guards (require/check/can) |
+| [@vllnt/convex-reactions](https://oss.vllnt.com/packages/convex-reactions) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-reactions)](https://www.npmjs.com/package/@vllnt/convex-reactions) | Reactions, votes, and likes on any resource — toggle, count by kind, list reactors |
+| [@vllnt/convex-slugs](https://oss.vllnt.com/packages/convex-slugs) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-slugs)](https://www.npmjs.com/package/@vllnt/convex-slugs) | Unique slug and handle registry with rename redirects |
+| [@vllnt/convex-suppression](https://oss.vllnt.com/packages/convex-suppression) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-suppression)](https://www.npmjs.com/package/@vllnt/convex-suppression) | Do-not-contact suppression list + opt-in proof (GDPR/CAN-SPAM), hash-keyed and channel-aware |
+| [@vllnt/convex-tokens](https://oss.vllnt.com/packages/convex-tokens) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-tokens)](https://www.npmjs.com/package/@vllnt/convex-tokens) | Hashed-secret token primitive — mint-once, TTL, revoke, scope |
+| [@vllnt/convex-wallet](https://oss.vllnt.com/packages/convex-wallet) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-wallet)](https://www.npmjs.com/package/@vllnt/convex-wallet) | Consumable balances and economy ledger — atomic spend, lazy regen |
 
 ### Convex tooling
 
 | Package | npm | What it does |
 |---------|-----|-------------|
-| [@vllnt/convex-helpers](https://github.com/vllnt/convex-helpers) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-helpers)](https://www.npmjs.com/package/@vllnt/convex-helpers) | Typed host-side helpers for Convex backends — builders, errors, validators, relationships, pagination, HTTP, env, observability |
+| [@vllnt/convex-helpers](https://oss.vllnt.com/packages/convex-helpers) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-helpers)](https://www.npmjs.com/package/@vllnt/convex-helpers) | Typed host-side helpers for Convex backends — builders, errors, validators, relationships, pagination, HTTP, env, observability |
 | [@vllnt/convex-mcp](https://github.com/vllnt/convex-mcp) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-mcp)](https://www.npmjs.com/package/@vllnt/convex-mcp) | Expose Convex functions as MCP tools with zero boilerplate |
 
 ### Coming Soon
@@ -80,7 +83,9 @@ Sandboxed, `app.use()`-mountable components for any Convex backend — each owns
 
 <div align="center">
 
-[![Website](https://img.shields.io/badge/vllnt.ai-000?style=flat)](https://vllnt.ai)
+[![Website](https://img.shields.io/badge/vllnt.com-000?style=flat)](https://vllnt.com)
+[![Open source](https://img.shields.io/badge/oss.vllnt.com-000?style=flat)](https://oss.vllnt.com)
+[![Author](https://img.shields.io/badge/bntvllnt.com-000?style=flat)](https://bntvllnt.com)
 [![X](https://img.shields.io/badge/@bntvllnt-000?style=flat&logo=x)](https://bntvllnt.com/x)
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=flat&logo=discord&logoColor=white)](https://bntvllnt.com/discord)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin)](https://bntvllnt.com/linkedin)
