@@ -54,8 +54,7 @@ Sandboxed, `app.use()`-mountable components for any Convex backend — each owns
 
 | Package | npm | What it does |
 |---------|-----|-------------|
-| [@vllnt/convex-helpers](https://oss.vllnt.com/packages/convex-helpers) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-helpers)](https://www.npmjs.com/package/@vllnt/convex-helpers) | Typed host-side helpers for Convex backends — builders, errors, validators, relationships, pagination, HTTP, env, observability |
-| [@vllnt/convex-mcp](https://github.com/vllnt/convex-mcp) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-mcp)](https://www.npmjs.com/package/@vllnt/convex-mcp) | Expose Convex functions as MCP tools with zero boilerplate |
+| [@vllnt/convex-helpers](https://oss.vllnt.com/packages/convex-helpers) | [![npm](https://img.shields.io/npm/v/@vllnt/convex-helpers)](https://www.npmjs.com/package/@vllnt/convex-helpers) | Typed host-side helpers for Convex backends — builders, errors, validators, relationships, pagination, HTTP, env, observability, and MCP tools (`@vllnt/convex-helpers/mcp`) |
 
 ### Coming Soon
 
